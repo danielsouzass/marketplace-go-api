@@ -18,8 +18,8 @@
    go generate
    ```
 
-4. Execute o projeto
+4. Execute o projeto com air (live reload)
 
    ```bash
-   ...
+   air --build.cmd "go build -o ./bin/api ./cmd/api" --build.bin "./bin/api”
    ```
