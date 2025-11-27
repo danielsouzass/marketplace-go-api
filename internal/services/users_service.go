@@ -6,6 +6,7 @@ import (
 	"marketplace/internal/auth"
 	"marketplace/internal/store/pgstore"
 	"marketplace/internal/usecases/user"
+	"time"
 
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/google/uuid"
@@ -91,9 +92,25 @@ func (us *UserService) AuthenticateUser(ctx context.Context, credentials user.Lo
 		return user.LoginResponse{}, ErrFailedToAuthenticate
 	}
 
+	oldRefreshToken, err := us.queries.GetRefreshTokenByUserID(ctx, userFound.ID)
+	if err == nil {
+		err := us.queries.DeleteRefreshToken(ctx, oldRefreshToken.ID)
+		if err != nil {
+			return user.LoginResponse{}, ErrFailedToAuthenticate
+		}
+	}
+
+	refreshToken, err := us.queries.CreateRefreshToken(ctx, pgstore.CreateRefreshTokenParams{
+		ExpiresIn: int32(time.Now().Add(15 * time.Minute).Unix()),
+		UserID:    userFound.ID,
+	})
+	if err != nil {
+		return user.LoginResponse{}, ErrFailedToAuthenticate
+	}
+
 	return user.LoginResponse{
 		AccessToken:  accessToken,
-		RefreshToken: "fake-refresh-token",
+		RefreshToken: refreshToken.ID.String(),
 	}, nil
 }
 

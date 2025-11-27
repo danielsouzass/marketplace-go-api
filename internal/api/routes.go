@@ -14,14 +14,17 @@ func (api *API) BindRoutes() {
 	api.Router.Route("/api", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/users", func(r chi.Router) {
-				r.Post("/register", api.handleCreateUser)
-				r.Post("/login", api.handleLoginUser)
+				r.Post("/", api.handleCreateUser)
 
 				r.Group(func(r chi.Router) {
 					r.Use(jwtauth.Verifier(auth.TokenAuth))
 					r.Use(jwtauth.Authenticator(auth.TokenAuth))
 					r.Get("/me", api.handleGetUser)
 				})
+			})
+
+			r.Route("/auth", func(r chi.Router) {
+				r.Post("/", api.handleLoginUser)
 			})
 		})
 	})
