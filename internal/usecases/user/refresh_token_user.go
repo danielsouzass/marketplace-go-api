@@ -10,7 +10,8 @@ type RefreshTokenUserRequest struct {
 }
 
 type RefreshTokenUserResponse struct {
-	AccessToken string `json:"access_token"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func RefreshTokenUser400Response(body types.Error) types.Response {

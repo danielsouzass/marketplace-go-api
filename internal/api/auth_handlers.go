@@ -43,7 +43,7 @@ func (api *API) handleUserRefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refreshToken, err := api.UserService.RefreshUserToken(r.Context(), data.RefreshToken)
+	tokens, err := api.UserService.RefreshUserToken(r.Context(), data.RefreshToken)
 	if err != nil {
 		jsonutils.SendJSON(w, user.RefreshTokenUser400Response(types.Error{
 			Message: err.Error(),
@@ -51,5 +51,5 @@ func (api *API) handleUserRefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jsonutils.SendJSON(w, user.RefreshTokenUser200Response(refreshToken))
+	jsonutils.SendJSON(w, user.RefreshTokenUser200Response(tokens))
 }

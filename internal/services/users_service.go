@@ -91,30 +91,19 @@ func (us *UserService) AuthenticateUser(ctx context.Context, credentials user.Lo
 		return user.LoginResponse{}, ErrFailedToAuthenticate
 	}
 
-	accessToken, err := auth.NewAccessToken(userFound.ID)
+	accessToken, err := us.GenerateAccessToken(userFound.ID)
 	if err != nil {
-		return user.LoginResponse{}, ErrFailedToAuthenticate
+		return user.LoginResponse{}, err
 	}
 
-	oldRefreshToken, err := us.queries.GetRefreshTokenByUserID(ctx, userFound.ID)
-	if err == nil {
-		err := us.queries.DeleteRefreshToken(ctx, oldRefreshToken.ID)
-		if err != nil {
-			return user.LoginResponse{}, ErrFailedToAuthenticate
-		}
-	}
-
-	refreshToken, err := us.queries.CreateRefreshToken(ctx, pgstore.CreateRefreshTokenParams{
-		ExpiresIn: int32(time.Now().Add(15 * time.Minute).Unix()),
-		UserID:    userFound.ID,
-	})
+	refreshToken, err := us.GenerateRefreshToken(ctx, userFound.ID)
 	if err != nil {
-		return user.LoginResponse{}, ErrFailedToAuthenticate
+		return user.LoginResponse{}, err
 	}
 
 	return user.LoginResponse{
 		AccessToken:  accessToken,
-		RefreshToken: refreshToken.ID.String(),
+		RefreshToken: refreshToken,
 	}, nil
 }
 
@@ -165,12 +154,46 @@ func (us *UserService) RefreshUserToken(ctx context.Context, refreshToken string
 		return user.RefreshTokenUserResponse{}, ErrRefreshTokenExpired
 	}
 
-	accessToken, err := auth.NewAccessToken(refreshTokenFound.UserID)
+	newAccessToken, err := us.GenerateAccessToken(refreshTokenFound.UserID)
 	if err != nil {
-		return user.RefreshTokenUserResponse{}, ErrFailedToRefreshToken
+		return user.RefreshTokenUserResponse{}, err
+	}
+
+	newRefreshToken, err := us.GenerateRefreshToken(ctx, refreshTokenFound.UserID)
+	if err != nil {
+		return user.RefreshTokenUserResponse{}, err
 	}
 
 	return user.RefreshTokenUserResponse{
-		AccessToken: accessToken,
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
 	}, nil
+}
+
+func (us *UserService) GenerateAccessToken(userID uuid.UUID) (accessToken string, err error) {
+	newAccessToken, err := auth.NewAccessToken(userID)
+	if err != nil {
+		return "", ErrFailedToAuthenticate
+	}
+	return newAccessToken, nil
+}
+
+func (us *UserService) GenerateRefreshToken(ctx context.Context, userID uuid.UUID) (refreshToken string, err error) {
+	oldRefreshToken, err := us.queries.GetRefreshTokenByUserID(ctx, userID)
+	if err == nil {
+		err := us.queries.DeleteRefreshToken(ctx, oldRefreshToken.ID)
+		if err != nil {
+			return "", ErrFailedToAuthenticate
+		}
+	}
+
+	newRefreshToken, err := us.queries.CreateRefreshToken(ctx, pgstore.CreateRefreshTokenParams{
+		ExpiresIn: int32(time.Now().Add(24 * time.Hour).Unix()),
+		UserID:    userID,
+	})
+	if err != nil {
+		return "", ErrFailedToAuthenticate
+	}
+
+	return newRefreshToken.ID.String(), nil
 }
