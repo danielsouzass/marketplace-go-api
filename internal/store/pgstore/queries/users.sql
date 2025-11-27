@@ -12,3 +12,15 @@ WHERE email = $1;
 SELECT *
 FROM users
 WHERE tel = $1;
+
+-- name: GetUserByID :one
+SELECT
+    id, 
+    name, 
+    email,
+    tel, 
+    avatar,
+    created_at, 
+    updated_at
+FROM users
+WHERE id = $1;

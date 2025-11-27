@@ -7,7 +7,9 @@ package pgstore
 
 import (
 	"context"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -62,6 +64,44 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 		&i.Tel,
 		&i.Password,
+		&i.Avatar,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT
+    id, 
+    name, 
+    email,
+    tel, 
+    avatar,
+    created_at, 
+    updated_at
+FROM users
+WHERE id = $1
+`
+
+type GetUserByIDRow struct {
+	ID        uuid.UUID   `json:"id"`
+	Name      string      `json:"name"`
+	Email     string      `json:"email"`
+	Tel       string      `json:"tel"`
+	Avatar    pgtype.Text `json:"avatar"`
+	CreatedAt time.Time   `json:"created_at"`
+	UpdatedAt time.Time   `json:"updated_at"`
+}
+
+func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error) {
+	row := q.db.QueryRow(ctx, getUserByID, id)
+	var i GetUserByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Tel,
 		&i.Avatar,
 		&i.CreatedAt,
 		&i.UpdatedAt,

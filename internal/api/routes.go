@@ -1,8 +1,11 @@
 package api
 
 import (
+	"marketplace/internal/auth"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/jwtauth/v5"
 )
 
 func (api *API) BindRoutes() {
@@ -11,7 +14,14 @@ func (api *API) BindRoutes() {
 	api.Router.Route("/api", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/users", func(r chi.Router) {
-				r.Post("/signup", api.handleCreateUser)
+				r.Post("/register", api.handleCreateUser)
+				r.Post("/login", api.handleLoginUser)
+
+				r.Group(func(r chi.Router) {
+					r.Use(jwtauth.Verifier(auth.TokenAuth))
+					r.Use(jwtauth.Authenticator(auth.TokenAuth))
+					r.Get("/me", api.handleGetUser)
+				})
 			})
 		})
 	})

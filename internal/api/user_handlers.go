@@ -32,3 +32,38 @@ func (api *API) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		Id: id.String(),
 	}))
 }
+
+func (api *API) handleLoginUser(w http.ResponseWriter, r *http.Request) {
+	data, err := jsonutils.ReadJSON[user.LoginUserRequest](r)
+	if err != nil {
+		jsonutils.SendJSON(w, common.InvalidJSONResponse(err))
+		return
+	}
+
+	if err := api.Validator.Struct(data); err != nil {
+		jsonutils.SendJSON(w, common.ValidationErrorResponse(err))
+		return
+	}
+
+	tokens, err := api.UserService.AuthenticateUser(r.Context(), data)
+	if err != nil {
+		jsonutils.SendJSON(w, user.LoginUser400Response(types.Error{
+			Message: err.Error(),
+		}))
+		return
+	}
+
+	jsonutils.SendJSON(w, user.LoginUser201Response(tokens))
+}
+
+func (api *API) handleGetUser(w http.ResponseWriter, r *http.Request) {
+	response, err := api.UserService.GetUser(r.Context())
+	if err != nil {
+		jsonutils.SendJSON(w, user.GetUser404Response(types.Error{
+			Message: err.Error(),
+		}))
+		return
+	}
+
+	jsonutils.SendJSON(w, user.GetUser200Response(response))
+}
