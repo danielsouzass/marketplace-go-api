@@ -25,6 +25,7 @@ func (api *API) BindRoutes() {
 
 			r.Route("/auth", func(r chi.Router) {
 				r.Post("/", api.handleLoginUser)
+				r.Post("/refresh-token", api.handleUserRefreshToken)
 			})
 		})
 	})

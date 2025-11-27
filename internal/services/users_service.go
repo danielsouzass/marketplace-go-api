@@ -35,6 +35,10 @@ var (
 	ErrInvalidCredentials     = errors.New("email or password is incorrect")
 	ErrFailedToAuthenticate   = errors.New("failed to authenticate user")
 	ErrUserNotFound           = errors.New("user not found")
+	ErrFailedToRefreshToken   = errors.New("failed to refresh token")
+	ErrRefreshTokenNotFound   = errors.New("refresh token not found")
+	ErrRefreshTokenExpired    = errors.New("refresh token has expired")
+	ErrInvalidRefreshToken    = errors.New("invalid refresh token")
 )
 
 func (us *UserService) CreateUser(ctx context.Context, user user.CreateUserRequest) (uuid.UUID, error) {
@@ -138,5 +142,35 @@ func (us *UserService) GetUser(ctx context.Context) (user.GetUserResponse, error
 		Avatar:    userFound.Avatar.String,
 		CreatedAt: userFound.CreatedAt,
 		UpdatedAt: userFound.UpdatedAt,
+	}, nil
+}
+
+func (us *UserService) RefreshUserToken(ctx context.Context, refreshToken string) (user.RefreshTokenUserResponse, error) {
+	refreshTokenId, err := uuid.Parse(refreshToken)
+	if err != nil {
+		return user.RefreshTokenUserResponse{}, ErrInvalidRefreshToken
+	}
+
+	refreshTokenFound, err := us.queries.GetRefreshTokenByID(ctx, refreshTokenId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return user.RefreshTokenUserResponse{}, ErrRefreshTokenNotFound
+		}
+		return user.RefreshTokenUserResponse{}, ErrFailedToRefreshToken
+	}
+
+	refreshTokenExpired := time.Now().Unix() > int64(refreshTokenFound.ExpiresIn)
+
+	if refreshTokenExpired {
+		return user.RefreshTokenUserResponse{}, ErrRefreshTokenExpired
+	}
+
+	accessToken, err := auth.NewAccessToken(refreshTokenFound.UserID)
+	if err != nil {
+		return user.RefreshTokenUserResponse{}, ErrFailedToRefreshToken
+	}
+
+	return user.RefreshTokenUserResponse{
+		AccessToken: accessToken,
 	}, nil
 }
