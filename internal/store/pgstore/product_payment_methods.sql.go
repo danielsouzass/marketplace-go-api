@@ -29,3 +29,30 @@ func (q *Queries) CreateProductPaymentMethod(ctx context.Context, arg CreateProd
 	err := row.Scan(&i.ProductID, &i.PaymentMethodID)
 	return i, err
 }
+
+const getProductPaymentMethodsByProductID = `-- name: GetProductPaymentMethodsByProductID :many
+SELECT pm.id, pm.key, pm.name
+FROM product_payment_methods ppm
+JOIN payment_methods pm ON ppm.payment_method_id = pm.id
+WHERE ppm.product_id = $1
+`
+
+func (q *Queries) GetProductPaymentMethodsByProductID(ctx context.Context, productID uuid.UUID) ([]PaymentMethod, error) {
+	rows, err := q.db.Query(ctx, getProductPaymentMethodsByProductID, productID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PaymentMethod
+	for rows.Next() {
+		var i PaymentMethod
+		if err := rows.Scan(&i.ID, &i.Key, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

@@ -35,3 +35,35 @@ func (q *Queries) CreateProductImage(ctx context.Context, arg CreateProductImage
 	)
 	return i, err
 }
+
+const getProductImagesByProductID = `-- name: GetProductImagesByProductID :many
+SELECT id, product_id, path, created_at, updated_at
+FROM product_images
+WHERE product_id = $1
+`
+
+func (q *Queries) GetProductImagesByProductID(ctx context.Context, productID uuid.UUID) ([]ProductImage, error) {
+	rows, err := q.db.Query(ctx, getProductImagesByProductID, productID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ProductImage
+	for rows.Next() {
+		var i ProductImage
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProductID,
+			&i.Path,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

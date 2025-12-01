@@ -3,3 +3,9 @@ INSERT INTO products
     ("user_id", "name", "description", "is_new", "price", "accept_trade")
 VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
+
+-- name: GetProductsByUserID :many
+SELECT *
+FROM products 
+WHERE user_id = $1
+ORDER BY created_at DESC;

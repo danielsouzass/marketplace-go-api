@@ -36,3 +36,10 @@ func CreatedResponse(body any) types.Response {
 		Code: http.StatusCreated,
 	}
 }
+
+func OKResponse(body any) types.Response {
+	return types.Response{
+		Body: body,
+		Code: http.StatusOK,
+	}
+}

@@ -7,7 +7,22 @@ package pgstore
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
+
+const getPaymentMethodByID = `-- name: GetPaymentMethodByID :one
+SELECT id, key, name
+FROM payment_methods
+WHERE id = $1
+`
+
+func (q *Queries) GetPaymentMethodByID(ctx context.Context, id uuid.UUID) (PaymentMethod, error) {
+	row := q.db.QueryRow(ctx, getPaymentMethodByID, id)
+	var i PaymentMethod
+	err := row.Scan(&i.ID, &i.Key, &i.Name)
+	return i, err
+}
 
 const getPaymentMethodsByKeys = `-- name: GetPaymentMethodsByKeys :many
 SELECT id, key, name

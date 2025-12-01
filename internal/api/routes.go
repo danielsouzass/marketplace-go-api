@@ -19,6 +19,7 @@ func (api *API) BindRoutes() {
 				r.Group(func(r chi.Router) {
 					r.Use(jwtauth.Verifier(auth.TokenAuth))
 					r.Use(jwtauth.Authenticator(auth.TokenAuth))
+
 					r.Get("/me", api.handleGetUser)
 				})
 			})
@@ -32,6 +33,8 @@ func (api *API) BindRoutes() {
 				r.Group(func(r chi.Router) {
 					r.Use(jwtauth.Verifier(auth.TokenAuth))
 					r.Use(jwtauth.Authenticator(auth.TokenAuth))
+
+					r.Get("/", api.handleGetProducts)
 					r.Post("/", api.handleCreateProduct)
 				})
 			})

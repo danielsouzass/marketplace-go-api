@@ -32,3 +32,15 @@ func (api *API) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
 		Id: productID.String(),
 	}))
 }
+
+func (api *API) handleGetProducts(w http.ResponseWriter, r *http.Request) {
+	products, err := api.ProductService.GetProducts(r.Context())
+	if err != nil {
+		jsonutils.SendJSON(w, common.BadRequestResponse(types.Error{
+			Message: err.Error(),
+		}))
+		return
+	}
+
+	jsonutils.SendJSON(w, common.OKResponse(products))
+}

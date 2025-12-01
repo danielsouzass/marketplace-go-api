@@ -51,3 +51,41 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 	)
 	return i, err
 }
+
+const getProductsByUserID = `-- name: GetProductsByUserID :many
+SELECT id, user_id, name, description, is_new, price, accept_trade, is_active, created_at, updated_at
+FROM products 
+WHERE user_id = $1
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetProductsByUserID(ctx context.Context, userID uuid.UUID) ([]Product, error) {
+	rows, err := q.db.Query(ctx, getProductsByUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Name,
+			&i.Description,
+			&i.IsNew,
+			&i.Price,
+			&i.AcceptTrade,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
