@@ -38,6 +38,13 @@ func (api *API) BindRoutes() {
 					r.Post("/", api.handleCreateProduct)
 				})
 			})
+
+			r.Route("/payment-methods", func(r chi.Router) {
+				r.Use(jwtauth.Verifier(auth.TokenAuth))
+				r.Use(jwtauth.Authenticator(auth.TokenAuth))
+
+				r.Get("/", api.handleGetPaymentMethods)
+			})
 		})
 	})
 }

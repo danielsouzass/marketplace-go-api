@@ -7,22 +7,7 @@ package pgstore
 
 import (
 	"context"
-
-	"github.com/google/uuid"
 )
-
-const getPaymentMethodByID = `-- name: GetPaymentMethodByID :one
-SELECT id, key, name
-FROM payment_methods
-WHERE id = $1
-`
-
-func (q *Queries) GetPaymentMethodByID(ctx context.Context, id uuid.UUID) (PaymentMethod, error) {
-	row := q.db.QueryRow(ctx, getPaymentMethodByID, id)
-	var i PaymentMethod
-	err := row.Scan(&i.ID, &i.Key, &i.Name)
-	return i, err
-}
 
 const getPaymentMethodsByKeys = `-- name: GetPaymentMethodsByKeys :many
 SELECT id, key, name
@@ -32,6 +17,32 @@ WHERE key = ANY($1::text[])
 
 func (q *Queries) GetPaymentMethodsByKeys(ctx context.Context, dollar_1 []string) ([]PaymentMethod, error) {
 	rows, err := q.db.Query(ctx, getPaymentMethodsByKeys, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PaymentMethod
+	for rows.Next() {
+		var i PaymentMethod
+		if err := rows.Scan(&i.ID, &i.Key, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPaymentMethods = `-- name: ListPaymentMethods :many
+SELECT id, key, name
+FROM payment_methods
+ORDER BY name
+`
+
+func (q *Queries) ListPaymentMethods(ctx context.Context) ([]PaymentMethod, error) {
+	rows, err := q.db.Query(ctx, listPaymentMethods)
 	if err != nil {
 		return nil, err
 	}

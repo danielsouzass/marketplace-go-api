@@ -39,10 +39,11 @@ func main() {
 	}
 
 	api := api.API{
-		Router:         chi.NewMux(),
-		Validator:      validator.New(validator.WithRequiredStructEnabled()),
-		UserService:    services.NewUserService(pool),
-		ProductService: services.NewProductService(pool),
+		Router:                chi.NewMux(),
+		Validator:             validator.New(validator.WithRequiredStructEnabled()),
+		UserService:           services.NewUserService(pool),
+		ProductService:        services.NewProductService(pool),
+		PaymentMethodsService: services.NewPaymentMethodsService(pool),
 	}
 
 	api.BindRoutes()
