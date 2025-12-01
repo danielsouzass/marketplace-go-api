@@ -34,6 +34,9 @@ var (
 	ErrFailedToGetProducts              = errors.New("failed to get products")
 	ErrFailedToGetProductImages         = errors.New("failed to get product images")
 	ErrFailedToGetProductPaymentMethods = errors.New("failed to get product payment methods")
+	ErrProductNotFound                  = errors.New("product not found")
+	ErrProductDoesNotBelongToUser       = errors.New("product does not belong to the user")
+	ErrFailedToDeleteProduct            = errors.New("failed to delete product")
 )
 
 func (ps *ProductService) CreateProduct(ctx context.Context, data product.CreateProductRequest) (uuid.UUID, error) {
@@ -153,4 +156,36 @@ func (ps *ProductService) GetProducts(ctx context.Context) (product.GetProductsR
 	}
 
 	return products, nil
+}
+
+func (ps *ProductService) DeleteProduct(ctx context.Context, productID string) error {
+	_, claims, _ := jwtauth.FromContext(ctx)
+	userId, err := uuid.Parse(claims["user_id"].(string))
+	if err != nil {
+		return ErrUserNotFound
+	}
+
+	productUUID, err := uuid.Parse(productID)
+	if err != nil {
+		return ErrProductNotFound
+	}
+
+	product, err := ps.queries.GetProductByID(ctx, productUUID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrProductNotFound
+		}
+		return ErrProductNotFound
+	}
+
+	if product.UserID != userId {
+		return ErrProductDoesNotBelongToUser
+	}
+
+	err = ps.queries.DeleteProductByID(ctx, productUUID)
+	if err != nil {
+		return ErrFailedToDeleteProduct
+	}
+
+	return nil
 }

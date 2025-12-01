@@ -6,6 +6,8 @@ import (
 	"marketplace/internal/usecases/common"
 	"marketplace/internal/usecases/product"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func (api *API) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
@@ -43,4 +45,16 @@ func (api *API) handleGetProducts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonutils.SendJSON(w, common.OKResponse(products))
+}
+
+func (api *API) handleDeleteProduct(w http.ResponseWriter, r *http.Request) {
+	err := api.ProductService.DeleteProduct(r.Context(), chi.URLParam(r, "id"))
+	if err != nil {
+		jsonutils.SendJSON(w, common.BadRequestResponse(types.Error{
+			Message: err.Error(),
+		}))
+		return
+	}
+
+	jsonutils.SendJSON(w, common.NoContentResponse())
 }

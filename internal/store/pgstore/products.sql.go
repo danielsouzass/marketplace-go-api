@@ -52,6 +52,40 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 	return i, err
 }
 
+const deleteProductByID = `-- name: DeleteProductByID :exec
+DELETE FROM products 
+WHERE id = $1
+`
+
+func (q *Queries) DeleteProductByID(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteProductByID, id)
+	return err
+}
+
+const getProductByID = `-- name: GetProductByID :one
+SELECT id, user_id, name, description, is_new, price, accept_trade, is_active, created_at, updated_at
+FROM products 
+WHERE id = $1
+`
+
+func (q *Queries) GetProductByID(ctx context.Context, id uuid.UUID) (Product, error) {
+	row := q.db.QueryRow(ctx, getProductByID, id)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Name,
+		&i.Description,
+		&i.IsNew,
+		&i.Price,
+		&i.AcceptTrade,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getProductsByUserID = `-- name: GetProductsByUserID :many
 SELECT id, user_id, name, description, is_new, price, accept_trade, is_active, created_at, updated_at
 FROM products 

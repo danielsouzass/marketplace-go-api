@@ -36,6 +36,7 @@ func (api *API) BindRoutes() {
 
 					r.Get("/", api.handleGetProducts)
 					r.Post("/", api.handleCreateProduct)
+					r.Delete("/{id}", api.handleDeleteProduct)
 				})
 			})
 

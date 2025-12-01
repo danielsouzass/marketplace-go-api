@@ -43,3 +43,10 @@ func OKResponse(body any) types.Response {
 		Code: http.StatusOK,
 	}
 }
+
+func NoContentResponse() types.Response {
+	return types.Response{
+		Body: nil,
+		Code: http.StatusNoContent,
+	}
+}
