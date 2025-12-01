@@ -18,16 +18,16 @@ type PaymentMethod struct {
 }
 
 type Product struct {
-	ID          uuid.UUID      `json:"id"`
-	UserID      uuid.UUID      `json:"user_id"`
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	IsNew       bool           `json:"is_new"`
-	Price       pgtype.Numeric `json:"price"`
-	AcceptTrade bool           `json:"accept_trade"`
-	IsActive    pgtype.Bool    `json:"is_active"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+	ID          uuid.UUID   `json:"id"`
+	UserID      uuid.UUID   `json:"user_id"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	IsNew       bool        `json:"is_new"`
+	Price       float64     `json:"price"`
+	AcceptTrade bool        `json:"accept_trade"`
+	IsActive    pgtype.Bool `json:"is_active"`
+	CreatedAt   time.Time   `json:"created_at"`
+	UpdatedAt   time.Time   `json:"updated_at"`
 }
 
 type ProductImage struct {

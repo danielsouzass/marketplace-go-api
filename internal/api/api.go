@@ -8,7 +8,8 @@ import (
 )
 
 type API struct {
-	Router      *chi.Mux
-	Validator   *validator.Validate
-	UserService services.UserService
+	Router         *chi.Mux
+	Validator      *validator.Validate
+	UserService    services.UserService
+	ProductService services.ProductService
 }

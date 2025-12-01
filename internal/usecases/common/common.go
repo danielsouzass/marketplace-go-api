@@ -22,3 +22,17 @@ func ValidationErrorResponse(err error) types.Response {
 		Code: http.StatusUnprocessableEntity,
 	}
 }
+
+func BadRequestResponse(body types.Error) types.Response {
+	return types.Response{
+		Body: body,
+		Code: http.StatusBadRequest,
+	}
+}
+
+func CreatedResponse(body any) types.Response {
+	return types.Response{
+		Body: body,
+		Code: http.StatusCreated,
+	}
+}

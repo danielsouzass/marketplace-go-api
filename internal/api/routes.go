@@ -27,6 +27,14 @@ func (api *API) BindRoutes() {
 				r.Post("/", api.handleLoginUser)
 				r.Post("/refresh-token", api.handleUserRefreshToken)
 			})
+
+			r.Route("/products", func(r chi.Router) {
+				r.Group(func(r chi.Router) {
+					r.Use(jwtauth.Verifier(auth.TokenAuth))
+					r.Use(jwtauth.Authenticator(auth.TokenAuth))
+					r.Post("/", api.handleCreateProduct)
+				})
+			})
 		})
 	})
 }
